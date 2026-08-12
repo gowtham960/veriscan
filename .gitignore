@@ -1,0 +1,22 @@
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# local database + uploaded/generated media — never commit user data or test artifacts
+*.db
+uploads/
+*.mp4
+*.wav
+*.extracted.wav
+
+# secrets
+.env
+.env.local
+
+# OS/editor cruft
+.DS_Store
+.vscode/
+.idea/

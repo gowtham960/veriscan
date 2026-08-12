@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VeriScan — Verification Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-ink:#101820;
+    --surface:#17222B;
+    --surface-raised:#1E2C37;
+    --border:#253544;
+    --text-primary:#E7EDF0;
+    --text-muted:#7C8B94;
+    --verified:#4FD1C5;
+    --flag:#E8A33D;
+    --contradict:#E8615D;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg-ink);
+    color:var(--text-primary);
+    font-family:'IBM Plex Sans',sans-serif;
+    line-height:1.5;
+  }
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;margin:0;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  a{color:inherit;}
+
+  .shell{max-width:920px;margin:0 auto;padding:48px 24px 96px;}
+
+  /* Header */
+  header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:40px;flex-wrap:wrap;gap:12px;}
+  .brand{display:flex;align-items:baseline;gap:12px;}
+  .brand h1{font-size:22px;letter-spacing:0.02em;}
+  .brand .tag{font-size:12px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;letter-spacing:0.04em;}
+  nav{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:3px;}
+  nav button{
+    background:none;border:none;color:var(--text-muted);padding:7px 16px;border-radius:999px;
+    font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s ease;
+  }
+  nav button.active{background:var(--surface-raised);color:var(--text-primary);}
+
+  /* Intake console */
+  .console{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:32px;}
+  .console h2{font-size:16px;color:var(--text-muted);font-weight:500;margin-bottom:16px;letter-spacing:0.01em;}
+  .input-tabs{display:flex;gap:4px;margin-bottom:16px;}
+  .input-tabs button{
+    flex:1;background:var(--surface-raised);border:1px solid var(--border);color:var(--text-muted);
+    padding:10px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s ease;
+  }
+  .input-tabs button.active{border-color:var(--verified);color:var(--verified);}
+  textarea, input[type=text]{
+    width:100%;background:var(--bg-ink);border:1px solid var(--border);border-radius:8px;
+    color:var(--text-primary);padding:14px;font-family:'IBM Plex Sans',sans-serif;font-size:14px;resize:vertical;
+  }
+  textarea:focus, input:focus{outline:none;border-color:var(--verified);}
+  .file-drop{
+    border:1px dashed var(--border);border-radius:8px;padding:28px;text-align:center;color:var(--text-muted);
+    font-size:13px;cursor:pointer;transition:all .15s ease;
+  }
+  .file-drop:hover{border-color:var(--verified);color:var(--text-primary);}
+  .file-drop.has-file{border-style:solid;border-color:var(--verified);color:var(--text-primary);}
+  input[type=file]{display:none;}
+  .submit-row{display:flex;justify-content:flex-end;margin-top:16px;}
+  .submit-btn{
+    background:var(--verified);color:var(--bg-ink);border:none;border-radius:8px;padding:11px 24px;
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;cursor:pointer;transition:opacity .15s ease;
+  }
+  .submit-btn:hover{opacity:0.88;}
+  .submit-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+  /* Chain of custody */
+  .custody{margin-bottom:32px;}
+  .custody-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;font-family:'IBM Plex Mono',monospace;}
+  .custody-trace{display:flex;flex-wrap:wrap;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+  .hop{flex:1;min-width:130px;padding:14px 16px;border-right:1px solid var(--border);position:relative;}
+  .hop:last-child{border-right:none;}
+  .hop-node{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--verified);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:4px;}
+  .hop-summary{font-size:12px;color:var(--text-muted);line-height:1.4;}
+  .hop.flagged .hop-node{color:var(--flag);}
+
+  /* Verdict report */
+  .report{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px;margin-bottom:32px;position:relative;overflow:hidden;}
+  .stamp{
+    position:absolute;top:24px;right:28px;
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.12em;
+    border:2.5px solid; border-radius:6px; padding:7px 14px;
+    transform:rotate(6deg);text-transform:uppercase;
+  }
+  .stamp.ok{color:var(--verified);border-color:var(--verified);}
+  .stamp.flag{color:var(--flag);border-color:var(--flag);}
+  .verdict-text{font-family:'IBM Plex Mono',monospace;font-size:14px;white-space:pre-wrap;line-height:1.9;color:var(--text-primary);margin:8px 0 24px;padding-right:120px;}
+  .gauges{display:flex;gap:32px;margin-bottom:24px;flex-wrap:wrap;}
+  .gauge{flex:1;min-width:160px;}
+  .gauge-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;}
+  .gauge-bar{height:6px;background:var(--bg-ink);border-radius:3px;overflow:hidden;margin-bottom:4px;}
+  .gauge-fill{height:100%;border-radius:3px;transition:width .4s ease;}
+  .gauge-value{font-family:'IBM Plex Mono',monospace;font-size:13px;}
+
+  .evidence-ledger{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media(max-width:640px){.evidence-ledger{grid-template-columns:1fr;} .stamp{position:static;display:inline-block;margin-bottom:12px;transform:rotate(0);} .verdict-text{padding-right:0;}}
+  .ledger-col{background:var(--surface-raised);border:1px solid var(--border);border-radius:8px;padding:16px;}
+  .ledger-col h3{font-size:13px;margin-bottom:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;}
+  .ledger-col.empty{color:var(--text-muted);font-size:13px;font-style:italic;}
+  .evidence-item{font-size:12.5px;color:var(--text-muted);padding:8px 0;border-top:1px solid var(--border);line-height:1.5;}
+  .evidence-item:first-of-type{border-top:none;}
+
+  /* Review queue */
+  .queue-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:12px;}
+  .queue-item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:10px;}
+  .queue-id{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);}
+  .queue-reason{font-size:12px;color:var(--flag);font-family:'IBM Plex Mono',monospace;}
+  .queue-verdict{font-size:13px;color:var(--text-primary);margin-bottom:12px;white-space:pre-wrap;}
+  .queue-actions{display:flex;gap:8px;}
+  .queue-actions button{
+    border-radius:6px;padding:7px 14px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);
+    background:var(--surface-raised);color:var(--text-primary);
+  }
+  .queue-actions button.approve:hover{border-color:var(--verified);color:var(--verified);}
+  .queue-actions button.reject:hover{border-color:var(--contradict);color:var(--contradict);}
+  .empty-state{text-align:center;color:var(--text-muted);padding:48px 24px;font-size:13px;}
+
+  .loading{display:flex;align-items:center;gap:10px;color:var(--text-muted);font-size:13px;font-family:'IBM Plex Mono',monospace;padding:16px 0;}
+  .spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--verified);border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header>
+    <div class="brand">
+      <h1>VeriScan</h1>
+      <span class="tag">CLAIM &amp; MEDIA VERIFICATION</span>
+    </div>
+    <nav>
+      <button class="active" data-view="verify">Verify</button>
+      <button data-view="queue">Review Queue <span id="queue-count" class="mono"></span></button>
+    </nav>
+  </header>
+
+  <!-- VERIFY VIEW -->
+  <div id="view-verify">
+    <div class="console">
+      <h2>Submit for verification</h2>
+      <div class="input-tabs">
+        <button class="active" data-mode="text_claim">Text claim</button>
+        <button data-mode="video_upload">Video upload</button>
+      </div>
+
+      <div id="input-text">
+        <textarea id="claim-input" rows="3" placeholder="Paste a claim, headline, or statement to verify…"></textarea>
+      </div>
+
+      <div id="input-video" class="hidden">
+        <label class="file-drop" id="file-drop-label">
+          <span id="file-drop-text">Click to choose a video file (.mp4)</span>
+          <input type="file" id="video-input" accept="video/*">
+        </label>
+      </div>
+
+      <div class="submit-row">
+        <button class="submit-btn" id="submit-btn">Run verification</button>
+      </div>
+    </div>
+
+    <div id="loading" class="loading hidden">
+      <div class="spinner"></div>
+      <span>Routing through Fact-Triangulation + Media Authenticity agents…</span>
+    </div>
+
+    <div id="result-area"></div>
+  </div>
+
+  <!-- QUEUE VIEW -->
+  <div id="view-queue" class="hidden">
+    <div class="custody-label">Pending human review</div>
+    <div id="queue-list"></div>
+  </div>
+
+</div>
+
+<script>
+const API_BASE = "";
+
+// --- Nav ---
+document.querySelectorAll('nav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const view = btn.dataset.view;
+    document.getElementById('view-verify').classList.toggle('hidden', view !== 'verify');
+    document.getElementById('view-queue').classList.toggle('hidden', view !== 'queue');
+    if (view === 'queue') loadQueue();
+  });
+});
+
+// --- Input mode tabs ---
+document.querySelectorAll('.input-tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.input-tabs button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const mode = btn.dataset.mode;
+    document.getElementById('input-text').classList.toggle('hidden', mode !== 'text_claim');
+    document.getElementById('input-video').classList.toggle('hidden', mode !== 'video_upload');
+  });
+});
+
+// --- File picker display ---
+const videoInput = document.getElementById('video-input');
+const fileDropLabel = document.getElementById('file-drop-label');
+const fileDropText = document.getElementById('file-drop-text');
+videoInput.addEventListener('change', () => {
+  if (videoInput.files.length) {
+    fileDropText.textContent = videoInput.files[0].name;
+    fileDropLabel.classList.add('has-file');
+  }
+});
+
+// --- Submit ---
+document.getElementById('submit-btn').addEventListener('click', async () => {
+  const mode = document.querySelector('.input-tabs button.active').dataset.mode;
+  const formData = new FormData();
+  formData.append('source_type', mode);
+
+  if (mode === 'text_claim') {
+    const claim = document.getElementById('claim-input').value.trim();
+    if (!claim) { alert('Enter a claim to verify.'); return; }
+    formData.append('raw_input', claim);
+  } else {
+    if (!videoInput.files.length) { alert('Choose a video file.'); return; }
+    formData.append('file', videoInput.files[0]);
+  }
+
+  const submitBtn = document.getElementById('submit-btn');
+  submitBtn.disabled = true;
+  document.getElementById('loading').classList.remove('hidden');
+  document.getElementById('result-area').innerHTML = '';
+
+  try {
+    const res = await fetch(`${API_BASE}/verify`, { method: 'POST', body: formData });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    renderResult(data);
+  } catch (err) {
+    document.getElementById('result-area').innerHTML =
+      `<div class="empty-state">Verification failed to reach the API. Is <span class="mono">api.py</span> running on port 8000?<br><span class="mono" style="color:var(--contradict)">${err.message}</span></div>`;
+  } finally {
+    submitBtn.disabled = false;
+    document.getElementById('loading').classList.add('hidden');
+  }
+});
+
+function renderResult(data) {
+  const stampClass = data.requires_human_review ? 'flag' : 'ok';
+  const stampText = data.requires_human_review ? 'FLAGGED' : 'VERIFIED';
+
+  const custodyHtml = data.audit_log.map(e => {
+    const flagged = (e.output_summary || '').includes('FLAGGED') || (e.output_summary || '').includes('human_review=True');
+    return `<div class="hop ${flagged ? 'flagged' : ''}">
+      <div class="hop-node">${e.node}</div>
+      <div class="hop-summary mono">${escapeHtml((e.output_summary || '').slice(0, 60))}</div>
+    </div>`;
+  }).join('');
+
+  const factEvidence = data.fact_check_result && data.fact_check_result.evidence && data.fact_check_result.evidence.length
+    ? data.fact_check_result.evidence.map(e => `<div class="evidence-item">${escapeHtml(e)}</div>`).join('')
+    : '<div class="ledger-col empty">No fact-check evidence for this input.</div>';
+
+  const mediaEvidence = data.media_check_result
+    ? [...(data.media_check_result.visual_evidence || []), ...(data.media_check_result.audio_evidence || [])]
+        .map(e => `<div class="evidence-item">${escapeHtml(e)}</div>`).join('')
+    : '<div class="ledger-col empty">No media check — text-only input.</div>';
+
+  document.getElementById('result-area').innerHTML = `
+    <div class="custody">
+      <div class="custody-label">Chain of custody — run ${data.run_id.slice(0,8)}</div>
+      <div class="custody-trace">${custodyHtml}</div>
+    </div>
+
+    <div class="report">
+      <div class="stamp ${stampClass}">${stampText}</div>
+      <div class="custody-label">Verdict report</div>
+      <div class="verdict-text">${escapeHtml(data.final_verdict)}</div>
+
+      <div class="gauges">
+        <div class="gauge">
+          <div class="gauge-label">Confidence</div>
+          <div class="gauge-bar"><div class="gauge-fill" style="width:${data.confidence_score*100}%;background:var(--verified)"></div></div>
+          <div class="gauge-value">${(data.confidence_score*100).toFixed(0)}%</div>
+        </div>
+        <div class="gauge">
+          <div class="gauge-label">Faithfulness (guardrail)</div>
+          <div class="gauge-bar"><div class="gauge-fill" style="width:${data.faithfulness_score*100}%;background:${data.faithfulness_score < 0.85 ? 'var(--flag)' : 'var(--verified)'}"></div></div>
+          <div class="gauge-value">${(data.faithfulness_score*100).toFixed(0)}%</div>
+        </div>
+      </div>
+
+      <div class="evidence-ledger">
+        <div class="ledger-col">
+          <h3>Fact-triangulation</h3>
+          ${factEvidence}
+        </div>
+        <div class="ledger-col">
+          <h3>Media authenticity</h3>
+          ${mediaEvidence}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function loadQueue() {
+  const list = document.getElementById('queue-list');
+  list.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading queue…</span></div>';
+  try {
+    const res = await fetch(`${API_BASE}/reviews`);
+    const items = await res.json();
+    document.getElementById('queue-count').textContent = items.length ? `(${items.length})` : '';
+    if (!items.length) {
+      list.innerHTML = '<div class="empty-state">No runs pending review.</div>';
+      return;
+    }
+    list.innerHTML = items.map(item => `
+      <div class="queue-item" data-run-id="${item.run_id}">
+        <div class="queue-item-top">
+          <span class="queue-id">${item.run_id.slice(0,8)}… · ${new Date(item.created_at).toLocaleString()}</span>
+          <span class="queue-reason">${escapeHtml(item.reason)}</span>
+        </div>
+        <div class="queue-verdict mono">${escapeHtml(item.final_verdict)}</div>
+        <div class="queue-actions">
+          <button class="approve" onclick="resolveReview('${item.run_id}','approved')">Approve</button>
+          <button class="reject" onclick="resolveReview('${item.run_id}','rejected')">Reject</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    list.innerHTML = `<div class="empty-state">Could not reach the API.</div>`;
+  }
+}
+
+async function resolveReview(runId, status) {
+  await fetch(`${API_BASE}/reviews/${runId}/resolve`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({status, notes: ''})
+  });
+  loadQueue();
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>
