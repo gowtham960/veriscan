@@ -167,6 +167,31 @@ Any state field written by more than one parallel node needs this pattern.
     - No auth — anyone with network access to the API can submit/resolve reviews.
       Fine for a local demo, not for any real deployment.
 
+## Running tests
+
+```bash
+pip install pytest
+pytest tests/ -v
+```
+
+The test suite (29 tests) runs entirely against fallback/stub paths — no API
+keys required — so it also runs in CI without secrets. It covers:
+- `tests/test_security.py` — injection detection, sanitization, tool allowlist,
+  including regression tests for the two real bugs found during adversarial
+  testing (multi-modifier injection bypass, "you are now" false positive)
+- `tests/test_resilience.py` — timeout/retry behavior, including a regression
+  test for the daemon-thread bug (non-daemon `ThreadPoolExecutor` threads would
+  have blocked process exit on a genuinely hung call)
+- `tests/test_persistence.py` — SQLite audit log + review queue CRUD
+- `tests/test_graph.py` — end-to-end graph wiring: conditional routing, parallel
+  fan-out/fan-in, audit log accumulation, injection escalation to human review
+
+**Not covered by these tests**: real Groq/Tavily/LangSmith API responses (would
+need real keys as CI secrets), frontend rendering, or Whisper transcription.
+
+CI (`.github/workflows/ci.yml`) runs this suite automatically on every push/PR
+to `main`.
+
 ## Running the full stack
 
 ```bash

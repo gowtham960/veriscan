@@ -20,3 +20,6 @@ uploads/
 .DS_Store
 .vscode/
 .idea/
+
+# test artifacts
+.pytest_cache/
