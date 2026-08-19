@@ -1,5 +1,5 @@
 # VeriScan — LangGraph Skeleton (Step 1)
-
+![CI](https://github.com/gowtham960/veriscan/actions/workflows/ci.yml/badge.svg)
 This is the working end-to-end skeleton from the architecture doc: ingestion → routing →
 parallel fan-out (Fact-Triangulation Agent + Media Authenticity Agent) → reconciliation →
 faithfulness guardrail → policy gate.
