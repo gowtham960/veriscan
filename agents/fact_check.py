@@ -40,7 +40,7 @@ except ImportError:
 from utils.security import sanitize_output, scan_for_injection, check_tool_allowed, ToolNotAllowedError
 
 
-GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 SYSTEM_PROMPT = """You are a fact-verification agent inside a larger orchestration \
 system. You will be given a claim and a set of search results. Determine whether \

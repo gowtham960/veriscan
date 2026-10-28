@@ -1,5 +1,8 @@
 """Quick runner to sanity-check the graph end to end with a few input types."""
+"""Quick runner to sanity-check the graph end to end with a few input types."""
 import os
+from dotenv import load_dotenv
+load_dotenv()
 from graph import build_graph
 from utils.persistence import init_db, persist_run, enqueue_for_review, new_run_id
 

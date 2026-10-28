@@ -136,15 +136,15 @@ def reconcile_node(state: AgentState) -> dict:
     confidences = []
 
     if fact:
-        lines.append(f"Claim Verification: {fact['verdict']}")
+        lines.append(f"Claim Verification: {fact['verdict']} - claim: {(state.get('transcript') or '')[:200]}")
         evidence.extend(fact["evidence"])
-        confidences.append(fact["confidence"])
+        confidences.extend([fact["confidence"]] if fact.get("status") == "success" else [])
     if media:
         lines.append(f"Video Authenticity: {media['visual_verdict']}")
         lines.append(f"Voice Authenticity: {media['audio_verdict']}")
         evidence.extend(media["visual_evidence"] + media["audio_evidence"])
-        confidences.append(media["visual_confidence"])
-        if media["audio_verdict"] != "N/A":
+        confidences.extend([media["visual_confidence"]] if media.get("status") in ("success", "partial") else [])
+        if media["audio_verdict"] != "N/A" and media.get("status") in ("success", "partial"):
             confidences.append(media["audio_confidence"])
 
     if not lines:

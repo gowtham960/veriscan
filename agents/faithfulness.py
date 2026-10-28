@@ -36,7 +36,7 @@ except ImportError:
 from utils.security import check_tool_allowed
 
 
-GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 SYSTEM_PROMPT = """You are a faithfulness/groundedness checker inside a larger \
 orchestration system. You will be given a verdict statement and a list of \
